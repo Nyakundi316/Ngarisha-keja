@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* offset for sticky header when jumping to anchors */
+  scroll-padding-top: 88px;
+}
+
+body {
+  @apply bg-white text-ink font-body antialiased;
+}
+
+::selection {
+  background-color: #16A394;
+  color: #ffffff;
+}
+
+/* Utility: section shell */
+@layer components {
+  .container-px {
+    @apply mx-auto w-full max-w-content px-6;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-teal;
+  }
+  .eyebrow::before {
+    content: "";
+    @apply inline-block h-px w-6 bg-teal;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-btn px-6 py-3 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2;
+  }
+  .btn-primary {
+    @apply btn bg-navy text-white hover:bg-navy-hover hover:-translate-y-0.5 hover:shadow-lift active:translate-y-0;
+  }
+  .btn-accent {
+    @apply btn bg-teal text-white hover:bg-teal-dark hover:-translate-y-0.5 hover:shadow-lift active:translate-y-0;
+  }
+  .btn-outline {
+    @apply btn border border-navy/20 bg-white text-navy hover:border-navy hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0;
+  }
+  .btn-ghost {
+    @apply btn px-0 text-navy hover:text-teal;
+  }
+
+  .card {
+    @apply rounded-card border border-line bg-white p-6 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift;
+  }
+}
+
+/* Respect reduced motion: disable reveal transforms and hover lifts */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
