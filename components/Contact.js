@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Reveal from "@/components/Reveal";
 import Icon from "@/components/Icon";
 import { company, whatsappLink, serviceOptions } from "@/lib/site";
@@ -11,6 +11,15 @@ export default function Contact() {
   const [form, setForm] = useState(initial);
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
+
+  // Preselect the service when arriving from a /services/[slug] page
+  // (e.g. /contact?service=Office%20Cleaning).
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("service");
+    if (requested && serviceOptions.includes(requested)) {
+      setForm((f) => ({ ...f, service: requested }));
+    }
+  }, []);
 
   const update = (e) => {
     const { name, value } = e.target;
@@ -52,7 +61,7 @@ export default function Contact() {
 
   const fieldClass = (name) =>
     `w-full rounded-btn border bg-white px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-slatey/60 focus:border-teal focus:ring-2 focus:ring-teal/20 ${
-      errors[name] ? "border-red-400" : "border-line"
+      errors[name] ? "border-terracotta" : "border-line"
     }`;
 
   return (
@@ -110,7 +119,7 @@ export default function Contact() {
                   <Icon name="pin" className="h-5 w-5" />
                 </span>
                 <span className="text-sm font-medium text-navy">
-                  {company.address} · {company.hours}
+                  {company.address} Â· {company.hours}
                 </span>
               </li>
             </ul>
@@ -119,7 +128,7 @@ export default function Contact() {
 
         {/* Form column */}
         <Reveal delay={120}>
-          <div className="rounded-[1.5rem] border border-line bg-white p-7 shadow-lift sm:p-8">
+          <div className="rounded-xl border border-line bg-white p-7 shadow-lift sm:p-8">
             {sent ? (
               <div className="flex h-full min-h-[420px] flex-col items-center justify-center text-center">
                 <span className="grid h-16 w-16 place-items-center rounded-full bg-teal/10 text-teal">
@@ -127,7 +136,7 @@ export default function Contact() {
                 </span>
                 <h3 className="mt-5 font-display text-xl font-bold text-navy">Request ready to send</h3>
                 <p className="mt-2 max-w-sm text-sm text-slatey">
-                  We’ve opened WhatsApp with your details prefilled. Hit send there and we’ll get
+                  Weâ€™ve opened WhatsApp with your details prefilled. Hit send there and weâ€™ll get
                   back to you shortly.
                 </p>
                 <button onClick={() => setSent(false)} className="btn-outline mt-6">
@@ -142,14 +151,14 @@ export default function Contact() {
                       Name
                     </label>
                     <input id="name" name="name" value={form.name} onChange={update} className={fieldClass("name")} placeholder="Your full name" />
-                    {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+                    {errors.name && <p className="mt-1 text-xs text-terracotta">{errors.name}</p>}
                   </div>
                   <div>
                     <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-navy">
                       Phone Number
                     </label>
                     <input id="phone" name="phone" value={form.phone} onChange={update} className={fieldClass("phone")} placeholder="07XX XXX XXX" inputMode="tel" />
-                    {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
+                    {errors.phone && <p className="mt-1 text-xs text-terracotta">{errors.phone}</p>}
                   </div>
                 </div>
 
@@ -159,14 +168,14 @@ export default function Contact() {
                       Email
                     </label>
                     <input id="email" name="email" value={form.email} onChange={update} className={fieldClass("email")} placeholder="you@email.com" inputMode="email" />
-                    {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+                    {errors.email && <p className="mt-1 text-xs text-terracotta">{errors.email}</p>}
                   </div>
                   <div>
                     <label htmlFor="location" className="mb-1.5 block text-sm font-medium text-navy">
                       Location
                     </label>
                     <input id="location" name="location" value={form.location} onChange={update} className={fieldClass("location")} placeholder="Area / neighborhood" />
-                    {errors.location && <p className="mt-1 text-xs text-red-500">{errors.location}</p>}
+                    {errors.location && <p className="mt-1 text-xs text-terracotta">{errors.location}</p>}
                   </div>
                 </div>
 
@@ -175,21 +184,21 @@ export default function Contact() {
                     Service Needed
                   </label>
                   <select id="service" name="service" value={form.service} onChange={update} className={fieldClass("service")}>
-                    <option value="">Select a service…</option>
+                    <option value="">Select a serviceâ€¦</option>
                     {serviceOptions.map((s) => (
                       <option key={s} value={s}>
                         {s}
                       </option>
                     ))}
                   </select>
-                  {errors.service && <p className="mt-1 text-xs text-red-500">{errors.service}</p>}
+                  {errors.service && <p className="mt-1 text-xs text-terracotta">{errors.service}</p>}
                 </div>
 
                 <div>
                   <label htmlFor="message" className="mb-1.5 block text-sm font-medium text-navy">
                     Message <span className="font-normal text-slatey">(optional)</span>
                   </label>
-                  <textarea id="message" name="message" value={form.message} onChange={update} rows={4} className={fieldClass("message")} placeholder="Tell us about your space…" />
+                  <textarea id="message" name="message" value={form.message} onChange={update} rows={4} className={fieldClass("message")} placeholder="Tell us about your spaceâ€¦" />
                 </div>
 
                 <button type="submit" className="btn-accent mt-2 w-full">

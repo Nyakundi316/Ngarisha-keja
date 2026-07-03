@@ -20,15 +20,26 @@ const body = Inter({
 });
 
 export const metadata = {
-  title: `${company.name} — Professional Cleaning & Facility Support in ${company.serviceArea}`,
+  metadataBase: new URL(company.siteUrl),
+  title: {
+    default: `${company.name} — Professional Cleaning & Facility Support in ${company.serviceArea}`,
+    template: `%s — ${company.name}`,
+  },
   description:
     "Reliable residential, commercial, and institutional cleaning plus full facility support. Request a quote today.",
+  alternates: { canonical: "/" },
   openGraph: {
+    siteName: company.name,
     title: `${company.name} — Cleaning & Facility Support`,
     description:
       "Reliable cleaning and facility support for homes, offices, schools, Airbnbs, and commercial spaces.",
     type: "website",
+    locale: "en_KE",
   },
+};
+
+export const viewport = {
+  themeColor: "#66724A",
 };
 
 export default function RootLayout({ children }) {

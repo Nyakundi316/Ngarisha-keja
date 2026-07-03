@@ -13,12 +13,28 @@ html {
 }
 
 body {
-  @apply bg-white text-ink font-body antialiased;
+  @apply bg-cream text-ink font-body antialiased;
 }
 
 ::selection {
-  background-color: #16A394;
-  color: #ffffff;
+  background-color: #66724A;
+  color: #FFFDF8;
+}
+
+/* Calm page entrance: fade + slight upward drift on every route change. */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Utility: section shell */
@@ -28,15 +44,15 @@ body {
   }
 
   .eyebrow {
-    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-teal;
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-teal-dark;
   }
   .eyebrow::before {
     content: "";
-    @apply inline-block h-px w-6 bg-teal;
+    @apply inline-block h-px w-6 bg-gold;
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-btn px-6 py-3 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 rounded-btn px-6 py-3 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
   }
   .btn-primary {
     @apply btn bg-navy text-white hover:bg-navy-hover hover:-translate-y-0.5 hover:shadow-lift active:translate-y-0;
@@ -45,14 +61,14 @@ body {
     @apply btn bg-teal text-white hover:bg-teal-dark hover:-translate-y-0.5 hover:shadow-lift active:translate-y-0;
   }
   .btn-outline {
-    @apply btn border border-navy/20 bg-white text-navy hover:border-navy hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0;
+    @apply btn border border-ink/15 bg-white text-ink hover:border-gold hover:-translate-y-0.5 hover:shadow-soft active:translate-y-0;
   }
   .btn-ghost {
-    @apply btn px-0 text-navy hover:text-teal;
+    @apply btn px-0 text-ink hover:text-teal;
   }
 
   .card {
-    @apply rounded-card border border-line bg-white p-6 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift;
+    @apply rounded-card border border-line bg-white p-6 shadow-soft transition-all duration-200 hover:-translate-y-1 hover:border-gold/50 hover:shadow-lift;
   }
 }
 

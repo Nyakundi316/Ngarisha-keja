@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import Icon from "@/components/Icon";
 import { whyChooseUs, whatsappLink } from "@/lib/site";
@@ -16,7 +16,7 @@ export default function WhyChooseUs() {
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-slatey">
               We combine dependable people, clear standards, and flexible scheduling so your space
-              stays clean and well maintained — without the hassle.
+              stays clean and well maintained â€” without the hassle.
             </p>
           </Reveal>
           <Reveal delay={120}>
@@ -48,7 +48,7 @@ export default function WhyChooseUs() {
         <div className="grid gap-4 sm:grid-cols-2">
           {whyChooseUs.map((item, i) => (
             <Reveal key={item.title} delay={(i % 2) * 80}>
-              <div className="flex h-full gap-4 rounded-card border border-line bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
+              <div className="flex h-full gap-4 rounded-card border border-line bg-white p-5 shadow-soft transition-all duration-200 hover:-translate-y-1 hover:shadow-lift">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal/10 text-teal">
                   <Icon name={item.icon} className="h-5 w-5" />
                 </span>

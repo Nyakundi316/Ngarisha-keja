@@ -38,7 +38,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5" aria-label={`${company.name} home`}>
           <span className="grid h-9 w-9 place-items-center rounded-lg bg-navy text-white">
-            <Icon name="sparkle" className="h-5 w-5 text-teal" />
+            <Icon name="sparkle" className="h-5 w-5 text-gold" />
           </span>
           <span className="flex flex-col leading-none">
             <span className="font-display text-lg font-bold text-navy">{company.name}</span>
@@ -54,8 +54,8 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition-colors hover:text-teal ${
-                isActive(link.href) ? "text-teal" : "text-ink/80"
+              className={`relative text-sm font-medium transition-colors duration-200 after:absolute after:-bottom-1.5 after:left-0 after:h-0.5 after:rounded-full after:bg-gold after:transition-all after:duration-200 hover:text-teal-dark ${
+                isActive(link.href) ? "text-teal-dark after:w-5" : "text-ink/80 after:w-0 hover:after:w-5"
               }`}
             >
               {link.label}
@@ -106,8 +106,8 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className={`py-3.5 text-base font-medium hover:text-teal ${
-                  isActive(link.href) ? "text-teal" : "text-ink"
+                className={`py-3.5 text-base font-medium transition-colors hover:text-teal-dark ${
+                  isActive(link.href) ? "text-teal-dark" : "text-ink"
                 }`}
               >
                 {link.label}

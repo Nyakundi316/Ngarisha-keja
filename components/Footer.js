@@ -1,6 +1,6 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Icon from "@/components/Icon";
-import { company, navLinks, services, facilitySupport } from "@/lib/site";
+import { company, navLinks, services, facilitySupport, whatsappLink } from "@/lib/site";
 
 const year = new Date().getFullYear();
 
@@ -13,7 +13,7 @@ export default function Footer() {
         {/* Brand */}
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-white/10 text-teal">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-white/10 text-gold">
               <Icon name="sparkle" className="h-5 w-5" />
             </span>
             <span className="font-display text-lg font-bold text-white">{company.name}</span>
@@ -31,7 +31,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={key}
-                  className="grid h-9 w-9 place-items-center rounded-lg bg-white/10 text-white transition-colors hover:bg-teal"
+                  className="grid h-9 w-9 place-items-center rounded-lg bg-white/10 text-white transition-colors hover:bg-gold hover:text-navy"
                 >
                   <Icon name="arrow" className="h-4 w-4" />
                 </a>
@@ -46,7 +46,7 @@ export default function Footer() {
           <ul className="mt-4 space-y-2.5">
             {services.slice(0, 6).map((s) => (
               <li key={s.title}>
-                <Link href="/services" className="text-sm text-white/60 transition-colors hover:text-teal">
+                <Link href={`/services/${s.slug}`} className="text-sm text-white/60 transition-colors hover:text-gold">
                   {s.title}
                 </Link>
               </li>
@@ -62,7 +62,7 @@ export default function Footer() {
           <ul className="mt-4 space-y-2.5">
             {facilitySupport.slice(0, 6).map((f) => (
               <li key={f.title}>
-                <Link href="/services" className="text-sm text-white/60 transition-colors hover:text-teal">
+                <Link href={`/services/${f.slug}`} className="text-sm text-white/60 transition-colors hover:text-gold">
                   {f.title}
                 </Link>
               </li>
@@ -75,31 +75,40 @@ export default function Footer() {
           <h3 className="font-display text-sm font-bold uppercase tracking-wider text-white">Contact</h3>
           <ul className="mt-4 space-y-3 text-sm text-white/60">
             <li className="flex items-center gap-3">
-              <Icon name="phone" className="h-4 w-4 text-teal" />
-              <a href={`tel:${company.phoneHref}`} className="hover:text-teal">{company.phoneDisplay}</a>
+              <Icon name="phone" className="h-4 w-4 text-gold" />
+              <a href={`tel:${company.phoneHref}`} className="hover:text-gold">{company.phoneDisplay}</a>
             </li>
             <li className="flex items-center gap-3">
-              <Icon name="mail" className="h-4 w-4 text-teal" />
-              <a href={`mailto:${company.email}`} className="hover:text-teal">{company.email}</a>
+              <Icon name="mail" className="h-4 w-4 text-gold" />
+              <a href={`mailto:${company.email}`} className="hover:text-gold">{company.email}</a>
             </li>
             <li className="flex items-center gap-3">
-              <Icon name="pin" className="h-4 w-4 text-teal" />
+              <Icon name="whatsapp" className="h-4 w-4 text-gold" />
+              <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="hover:text-gold">
+                WhatsApp us
+              </a>
+            </li>
+            <li className="flex items-center gap-3">
+              <Icon name="pin" className="h-4 w-4 text-gold" />
               <span>{company.address}</span>
             </li>
             <li className="flex items-center gap-3">
-              <Icon name="clock" className="h-4 w-4 text-teal" />
+              <Icon name="clock" className="h-4 w-4 text-gold" />
               <span>{company.hours}</span>
             </li>
           </ul>
+          <p className="mt-5 text-xs leading-relaxed text-white/40">
+            Serving {company.serviceArea}. Quotes are free and confirmed after a site visit.
+          </p>
         </div>
       </div>
 
       <div className="border-t border-white/10">
         <div className="container-px flex flex-col items-center justify-between gap-3 py-6 text-xs text-white/50 sm:flex-row">
-          <p>© {year} {company.name}. All rights reserved.</p>
+          <p>Â© {year} {company.name}. All rights reserved.</p>
           <nav className="flex gap-5">
             {navLinks.map((l) => (
-              <Link key={l.href} href={l.href} className="hover:text-teal">
+              <Link key={l.href} href={l.href} className="hover:text-gold">
                 {l.label}
               </Link>
             ))}

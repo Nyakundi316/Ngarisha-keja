@@ -3,7 +3,7 @@ import FacilitySupport from "@/components/FacilitySupport";
 import ClientsWeServe from "@/components/ClientsWeServe";
 
 export const metadata = {
-  title: "Services — Ngarishakeja",
+  title: "Services",
   description:
     "Residential, commercial, and institutional cleaning plus full facility support — all in one place.",
 };

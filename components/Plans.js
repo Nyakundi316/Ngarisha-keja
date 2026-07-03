@@ -18,12 +18,12 @@ export default function Plans() {
           {plans.map((plan, i) => (
             <Reveal key={plan.title} delay={(i % 5) * 70} className="h-full">
               <article
-                className={`relative flex h-full flex-col rounded-card border p-6 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${
-                  plan.popular ? "border-teal bg-navy text-white" : "border-line bg-white"
+                className={`relative flex h-full flex-col rounded-card border p-6 shadow-soft transition-all duration-200 hover:-translate-y-1 hover:shadow-lift ${
+                  plan.popular ? "border-gold/70 bg-navy text-white" : "border-line bg-white hover:border-gold/50"
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute -top-3 left-6 rounded-full bg-teal px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+                  <span className="absolute -top-3 left-6 rounded-full bg-gold px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-navy">
                     Most Popular
                   </span>
                 )}

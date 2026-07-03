@@ -1,12 +1,21 @@
+import fs from "node:fs";
+import path from "node:path";
+import Image from "next/image";
 import Reveal from "@/components/Reveal";
 import Icon from "@/components/Icon";
 import { company } from "@/lib/site";
 
+// Drop a team or workplace photo at public/images/about.jpg and it
+// replaces the placeholder automatically at build time.
+const aboutPhoto = fs.existsSync(path.join(process.cwd(), "public/images/about.jpg"))
+  ? "/images/about.jpg"
+  : null;
+
 const features = [
-  "Trained & vetted staff",
+  "Trained & supervised staff",
   "Consistent hygiene standards",
   "Punctual, dependable service",
-  "Customer satisfaction guaranteed",
+  "We make it right if something's missed",
 ];
 
 export default function About() {
@@ -16,10 +25,19 @@ export default function About() {
         {/* Visual */}
         <Reveal className="relative order-last lg:order-first">
           <div className="relative aspect-square w-full overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-surface to-line shadow-soft">
-            {/* Replace with a real photo of your team / a clean space */}
-            <div className="absolute inset-0 grid place-items-center">
-              <Icon name="building" className="h-28 w-28 text-navy/15" />
-            </div>
+            {aboutPhoto ? (
+              <Image
+                src={aboutPhoto}
+                alt={`The ${company.name} team`}
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 grid place-items-center">
+                <Icon name="building" className="h-28 w-28 text-navy/15" />
+              </div>
+            )}
           </div>
           <div className="absolute -right-4 bottom-6 rounded-2xl border border-line bg-navy p-5 text-white shadow-lift">
             <p className="font-display text-3xl font-bold">{company.name}</p>

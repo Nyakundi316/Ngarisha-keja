@@ -2,7 +2,7 @@ import Plans from "@/components/Plans";
 import HowItWorks from "@/components/HowItWorks";
 
 export const metadata = {
-  title: "Plans — Ngarishakeja",
+  title: "Plans",
   description:
     "Flexible, quote-based cleaning plans — one-time, weekly, monthly, or long-term contracts.",
 };

@@ -36,7 +36,7 @@ function Stat({ value, suffix, label, run }) {
     <div className="text-center">
       <p className="font-display text-4xl font-extrabold text-white sm:text-5xl">
         {run ? display : "0"}
-        <span className="text-teal">{suffix}</span>
+        <span className="text-gold">{suffix}</span>
       </p>
       <p className="mt-2 text-sm font-medium uppercase tracking-wider text-white/60">{label}</p>
     </div>
@@ -68,10 +68,15 @@ export default function Stats() {
 
   return (
     <section ref={ref} className="bg-navy">
-      <div className="container-px grid grid-cols-2 gap-8 py-14 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Stat key={s.label} {...s} run={run} />
-        ))}
+      <div className="container-px py-14">
+        <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+          Ngarishakeja at a glance
+        </p>
+        <div className="mt-8 grid grid-cols-2 gap-8 lg:grid-cols-4">
+          {stats.map((s) => (
+            <Stat key={s.label} {...s} run={run} />
+          ))}
+        </div>
       </div>
     </section>
   );
