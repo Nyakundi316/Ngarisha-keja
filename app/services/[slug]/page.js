@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import Icon from "@/components/Icon";
 import CtaBand from "@/components/CtaBand";
+import Projects from "@/components/Projects";
 import JsonLd from "@/components/JsonLd";
 import { allServices, getServiceBySlug, company, steps } from "@/lib/site";
 import {
@@ -77,7 +78,7 @@ export default function ServiceDetailPage({ params }) {
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-slatey">{service.long}</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href={quoteHref} className="btn-accent">
+                <Link href={quoteHref} className="btn-accent" data-track-event="service_quote_click" data-track-service={service.slug}>
                   Request this service <Icon name="arrow" className="h-4 w-4" />
                 </Link>
                 <a href={`tel:${company.phoneHref}`} className="btn-outline">
@@ -134,6 +135,37 @@ export default function ServiceDetailPage({ params }) {
               ))}
             </ul>
 
+            <div className="mt-12 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-card border border-line bg-surface p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-teal">Recommended frequency</p>
+                <p className="mt-2 text-sm font-medium text-navy">{service.frequency}</p>
+              </div>
+              <div className="rounded-card border border-line bg-surface p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-teal">Typical duration</p>
+                <p className="mt-2 text-sm font-medium text-navy">{service.duration}</p>
+              </div>
+              <div className="rounded-card border border-line bg-surface p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-teal">Pricing factors</p>
+                <p className="mt-2 text-sm font-medium text-navy">{service.pricingFactors.join(", ")}.</p>
+              </div>
+            </div>
+
+            <div className="mt-12 grid gap-8 md:grid-cols-2">
+              <div>
+                <h2 className="font-display text-xl font-bold text-navy">What&apos;s not included</h2>
+                <ul className="mt-4 space-y-2 text-sm text-slatey">{service.excludes.map((item) => <li key={item}>• {item}</li>)}</ul>
+              </div>
+              <div>
+                <h2 className="font-display text-xl font-bold text-navy">Prepare for your quote</h2>
+                <p className="mt-4 text-sm leading-relaxed text-slatey">{service.preparation}</p>
+              </div>
+            </div>
+
+            <div className="mt-12 rounded-card border border-line bg-white p-6 shadow-soft">
+              <h2 className="font-display text-xl font-bold text-navy">Questions we&apos;ll ask</h2>
+              <ul className="mt-4 grid gap-2 text-sm text-slatey sm:grid-cols-2">{service.quoteQuestions.map((question) => <li key={question}>• {question}</li>)}</ul>
+            </div>
+
             {service.gallery?.length > 0 && (
               <div className="mt-12">
                 <h3 className="font-display text-lg font-bold text-navy">Recent work</h3>
@@ -168,10 +200,8 @@ export default function ServiceDetailPage({ params }) {
 
               <div className="my-6 h-px bg-line" />
 
-              <p className="text-sm font-semibold text-navy">Flexible scheduling</p>
-              <p className="mt-1 text-sm text-slatey">
-                One-time, weekly, monthly, or long-term — pick what fits your space.
-              </p>
+              <p className="text-sm font-semibold text-navy">Recommended rhythm</p>
+              <p className="mt-1 text-sm text-slatey">{service.frequency}</p>
 
               <div className="my-6 h-px bg-line" />
 
@@ -180,13 +210,29 @@ export default function ServiceDetailPage({ params }) {
                 Pricing depends on the size and state of your space — we confirm it after a quick
                 site visit, before any work starts.
               </p>
-              <Link href={quoteHref} className="btn-primary mt-6 w-full">
+              <Link href={quoteHref} className="btn-primary mt-6 w-full" data-track-event="service_quote_click" data-track-service={service.slug}>
                 Get a quote
               </Link>
             </div>
           </Reveal>
         </div>
       </section>
+
+      <section className="py-16">
+        <div className="container-px grid gap-10 lg:grid-cols-2">
+          <div>
+            <h2 className="font-display text-2xl font-bold text-navy">Common questions</h2>
+            <div className="mt-6 space-y-3">{service.faqs.map((item) => <details key={item.q} className="rounded-card border border-line bg-white p-5 shadow-soft"><summary className="cursor-pointer font-semibold text-navy">{item.q}</summary><p className="mt-3 text-sm leading-relaxed text-slatey">{item.a}</p></details>)}</div>
+          </div>
+          <div>
+            <h2 className="font-display text-2xl font-bold text-navy">Related plans</h2>
+            <div className="mt-6 flex flex-wrap gap-2">{service.relatedPlans.map((plan) => <Link key={plan} href={`/contact?service=${encodeURIComponent(plan)}`} className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-teal-dark hover:border-teal" data-track-event="plan_quote_click" data-track-plan={plan}>{plan}</Link>)}</div>
+            <p className="mt-8 text-sm leading-relaxed text-slatey">We serve configured areas in Nairobi. <Link href="/service-areas" className="font-semibold text-teal-dark hover:underline">See service areas</Link> or <Link href={quoteHref} className="font-semibold text-teal-dark hover:underline">request this service</Link>.</p>
+          </div>
+        </div>
+      </section>
+
+      <Projects serviceSlug={service.slug} />
 
       {/* From enquiry to done */}
       <section className="border-y border-line bg-white py-16">

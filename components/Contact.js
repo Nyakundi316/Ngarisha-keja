@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import Icon from "@/components/Icon";
 import { trackConversion } from "@/components/ConversionTracking";
 import { attributionKeys, captureAttribution } from "@/lib/attribution";
-import { quoteLimits, validateQuote } from "@/lib/quote";
+import {
+  contactMethodOptions,
+  frequencyOptions,
+  propertyTypeOptions,
+  quoteLimits,
+  referralSourceOptions,
+  validateQuote,
+} from "@/lib/quote";
 import { company, serviceOptions, whatsappLink } from "@/lib/site";
 
 const emptyForm = (service = "") => ({
@@ -14,8 +22,16 @@ const emptyForm = (service = "") => ({
   email: "",
   service,
   location: "",
+  propertyType: "",
+  propertySize: "",
+  frequency: "",
+  preferredDate: "",
+  contactMethod: "",
+  heardAbout: "",
   message: "",
+  companyWebsite: "",
 });
+
 
 function RequiredMark() {
   return (
@@ -35,6 +51,7 @@ export default function Contact({ initialService = "", initialAttribution = {} }
   const [fallbackUrl, setFallbackUrl] = useState("");
   const [clientReady, setClientReady] = useState(false);
   const statusRef = useRef(null);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     setClientReady(true);
@@ -46,7 +63,7 @@ export default function Contact({ initialService = "", initialAttribution = {} }
   }, [status]);
 
   const focusFirstError = (nextErrors) => {
-    const first = ["name", "phone", "email", "service"].find((field) => nextErrors[field]);
+    const first = ["name", "phone", "email", "service", "propertyType", "propertySize", "frequency", "preferredDate", "contactMethod", "heardAbout"].find((field) => nextErrors[field]);
     if (first) window.setTimeout(() => document.getElementById(first)?.focus(), 0);
   };
 
@@ -63,6 +80,7 @@ export default function Contact({ initialService = "", initialAttribution = {} }
 
   const onSubmit = async (event) => {
     event.preventDefault();
+    if (submittingRef.current) return;
     const result = validateQuote({ ...form, ...attribution });
     if (Object.keys(result.errors).length) {
       setErrors(result.errors);
@@ -73,9 +91,14 @@ export default function Contact({ initialService = "", initialAttribution = {} }
     }
 
     setErrors({});
+    submittingRef.current = true;
     setStatus("loading");
     setStatusMessage("");
     setFallbackUrl("");
+    trackConversion("quote_form_submit", {
+      service: result.values.service,
+      page_path: window.location.pathname,
+    });
 
     const popup = window.open("about:blank", "_blank");
     if (popup) {
@@ -107,6 +130,7 @@ export default function Contact({ initialService = "", initialAttribution = {} }
         setStatus("error");
         setStatusMessage(data.message || "We could not prepare WhatsApp. Please try again.");
         focusFirstError(serverErrors);
+        submittingRef.current = false;
         return;
       }
 
@@ -120,25 +144,29 @@ export default function Contact({ initialService = "", initialAttribution = {} }
       if (!popup || popup.closed) {
         setStatus("error");
         setStatusMessage("Your browser blocked the WhatsApp window. Use the link below to continue.");
+        submittingRef.current = false;
         return;
       }
 
       popup.location.replace(whatsappUrl);
-      trackConversion("quote_handoff", {
+      trackConversion("quote_whatsapp_handoff", {
         method: "WhatsApp",
         service: result.values.service,
         page_path: window.location.pathname,
       });
       setForm(emptyForm(initialService));
       setStatus("success");
+      submittingRef.current = false;
     } catch {
       if (popup && !popup.closed) popup.close();
       setStatus("error");
       setStatusMessage("We could not prepare WhatsApp. Check your connection and try again.");
+      submittingRef.current = false;
     }
   };
 
   const reset = () => {
+    submittingRef.current = false;
     setForm(emptyForm(initialService));
     setErrors({});
     setStatus("idle");
@@ -192,6 +220,12 @@ export default function Contact({ initialService = "", initialAttribution = {} }
                 <Icon name="phone" className="h-4 w-4" /> Call Now
               </a>
             </div>
+          </Reveal>
+
+          <Reveal delay={220}>
+            <p className="mt-8 max-w-md text-sm leading-relaxed text-slatey">
+              Looking for coverage details? See our <Link href="/service-areas" className="font-semibold text-teal-dark underline">service areas</Link> before you request a quote.
+            </p>
           </Reveal>
 
           <Reveal delay={180}>
@@ -258,12 +292,17 @@ export default function Contact({ initialService = "", initialAttribution = {} }
                 method="post"
                 onSubmit={onSubmit}
                 noValidate={clientReady}
+                data-quote-form="true"
                 aria-busy={status === "loading"}
                 className="grid gap-4"
               >
                 {attributionKeys.map((key) => (
                   <input key={key} type="hidden" name={key} value={attribution[key] || ""} />
                 ))}
+                <div className="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true">
+                  <label htmlFor="companyWebsite">Leave this field empty</label>
+                  <input id="companyWebsite" name="companyWebsite" tabIndex={-1} autoComplete="off" value={form.companyWebsite} onChange={update} />
+                </div>
 
                 {status === "error" && statusMessage && (
                   <div
@@ -325,6 +364,56 @@ export default function Contact({ initialService = "", initialAttribution = {} }
                       {...accessibilityProps("phone")}
                     />
                     {errorText("phone")}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="propertyType" className="mb-1.5 block text-sm font-medium text-navy">Property type <span className="font-normal text-slatey">(optional)</span></label>
+                    <select id="propertyType" name="propertyType" value={form.propertyType} onChange={update} className={fieldClass("propertyType")} {...accessibilityProps("propertyType")}>
+                      <option value="">Select a property type…</option>
+                      {propertyTypeOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                    {errorText("propertyType")}
+                  </div>
+                  <div>
+                    <label htmlFor="propertySize" className="mb-1.5 block text-sm font-medium text-navy">Property size <span className="font-normal text-slatey">(optional)</span></label>
+                    <input id="propertySize" name="propertySize" type="text" autoComplete="off" maxLength={quoteLimits.propertySize} value={form.propertySize} onChange={update} className={fieldClass("propertySize")} placeholder="Rooms, floor area, or a short note" {...accessibilityProps("propertySize")} />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="frequency" className="mb-1.5 block text-sm font-medium text-navy">Cleaning frequency <span className="font-normal text-slatey">(optional)</span></label>
+                    <select id="frequency" name="frequency" value={form.frequency} onChange={update} className={fieldClass("frequency")} {...accessibilityProps("frequency")}>
+                      <option value="">Select a frequency…</option>
+                      {frequencyOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                    {errorText("frequency")}
+                  </div>
+                  <div>
+                    <label htmlFor="preferredDate" className="mb-1.5 block text-sm font-medium text-navy">Preferred date <span className="font-normal text-slatey">(optional)</span></label>
+                    <input id="preferredDate" name="preferredDate" type="date" autoComplete="off" value={form.preferredDate} onChange={update} className={fieldClass("preferredDate")} {...accessibilityProps("preferredDate")} />
+                    {errorText("preferredDate")}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="contactMethod" className="mb-1.5 block text-sm font-medium text-navy">Preferred contact <span className="font-normal text-slatey">(optional)</span></label>
+                    <select id="contactMethod" name="contactMethod" value={form.contactMethod} onChange={update} className={fieldClass("contactMethod")} {...accessibilityProps("contactMethod")}>
+                      <option value="">Choose a contact method…</option>
+                      {contactMethodOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                    {errorText("contactMethod")}
+                  </div>
+                  <div>
+                    <label htmlFor="heardAbout" className="mb-1.5 block text-sm font-medium text-navy">How did you hear about us? <span className="font-normal text-slatey">(optional)</span></label>
+                    <select id="heardAbout" name="heardAbout" value={form.heardAbout} onChange={update} className={fieldClass("heardAbout")} {...accessibilityProps("heardAbout")}>
+                      <option value="">Choose an option…</option>
+                      {referralSourceOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                    {errorText("heardAbout")}
                   </div>
                 </div>
 
@@ -415,6 +504,7 @@ export default function Contact({ initialService = "", initialAttribution = {} }
                 </button>
                 <p className="text-center text-xs leading-relaxed text-slatey">
                   Submitting prepares a WhatsApp message. Review it there before sending.
+                  <br />Read our <Link href="/privacy" className="font-semibold text-teal-dark underline">privacy notice</Link>.
                 </p>
               </form>
             )}

@@ -7,7 +7,7 @@ export default function Analytics({ measurementId }) {
   return (
     <>
       <Script id="google-analytics-init" strategy="afterInteractive">
-        {`window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config',${id},{send_page_view:true,anonymize_ip:true});`}
+        {`window.dataLayer=window.dataLayer||[];window.__NGARISHA_ANALYTICS_ENABLED__=true;window.gtag=function(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config',${id},{send_page_view:true,anonymize_ip:true});`}
       </Script>
       <Script
         id="google-analytics-library"

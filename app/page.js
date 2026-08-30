@@ -3,6 +3,8 @@ import ServicesPreview from "@/components/ServicesPreview";
 import Stats from "@/components/Stats";
 import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
+import Projects from "@/components/Projects";
+import Reviews from "@/components/Reviews";
 import CtaBand from "@/components/CtaBand";
 import JsonLd from "@/components/JsonLd";
 import { createPageMetadata } from "@/lib/seo";
@@ -24,6 +26,8 @@ export default function Home() {
       <Stats />
       <HowItWorks />
       <Testimonials />
+      <Projects featuredOnly />
+      <Reviews />
       <CtaBand />
     </main>
   );

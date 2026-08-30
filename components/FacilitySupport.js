@@ -20,6 +20,8 @@ export default function FacilitySupport() {
             <Reveal key={f.title} delay={(i % 4) * 70}>
               <Link
                 href={`/services/${f.slug}`}
+                data-track-event="service_quote_click"
+                data-track-service={f.slug}
                 className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-white shadow-soft transition-all duration-200 hover:-translate-y-1 hover:border-navy/30 hover:shadow-lift"
               >
                 {f.image && (

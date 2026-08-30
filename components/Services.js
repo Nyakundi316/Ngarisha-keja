@@ -22,6 +22,8 @@ export default function Services() {
             <Reveal key={s.title} delay={(i % 3) * 80}>
               <Link
                 href={`/services/${s.slug}`}
+                data-track-event="service_quote_click"
+                data-track-service={s.slug}
                 className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-white shadow-soft transition-all duration-200 hover:-translate-y-1 hover:border-gold/50 hover:shadow-lift"
               >
                 {s.image && (
@@ -51,7 +53,7 @@ export default function Services() {
         </div>
 
         <Reveal delay={120} className="mt-12 text-center">
-          <Link href="/contact" className="btn-primary">
+          <Link href="/contact" className="btn-primary" data-track-event="quote_form_start" data-track-source="services_cta">
             Get a free quote <Icon name="arrow" className="h-4 w-4" />
           </Link>
         </Reveal>

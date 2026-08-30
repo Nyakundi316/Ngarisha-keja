@@ -1,4 +1,5 @@
 import http from "node:http";
+import { readFile } from "node:fs/promises";
 
 const localBase = process.env.VERIFY_BASE_URL || "http://127.0.0.1:3100";
 const productionBase = "https://www.ngarisha.co.ke";
@@ -78,7 +79,7 @@ assert(sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), "sitemap XM
 assert(sitemap.includes('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'), "sitemap urlset is invalid");
 assert(!sitemap.includes("ngarishakeja.co.ke"), "sitemap contains the unavailable domain");
 const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-assert(urls.length === 28, `expected 28 sitemap URLs, found ${urls.length}`);
+assert(urls.length === 30, `expected 30 sitemap URLs, found ${urls.length}`);
 assert(urls[0] === `${productionBase}/`, "homepage sitemap URL must end in a slash");
 assert(new Set(urls).size === urls.length, "sitemap contains duplicate URLs");
 
@@ -108,6 +109,8 @@ for (const url of urls) {
   assert(getMeta(html, "twitter:card") === "summary_large_image", `${productionUrl.pathname} Twitter card is incorrect`);
   assert(getMeta(html, "twitter:image")?.startsWith(productionBase), `${productionUrl.pathname} is missing twitter:image`);
   assert(h1Count === 1, `${productionUrl.pathname} has ${h1Count} H1 elements`);
+  assert(getMeta(html, "robots") !== "noindex, nofollow", `${productionUrl.pathname} is unexpectedly noindex`);
+  assert(html.includes('href="/privacy"'), `${productionUrl.pathname} does not link the privacy page`);
   assert(title && !titles.has(title), `${productionUrl.pathname} title is missing or duplicated`);
   assert(description && !descriptions.has(description), `${productionUrl.pathname} description is missing or duplicated`);
   mojibake.forEach((sequence) => assert(!html.includes(sequence), `${productionUrl.pathname} contains ${sequence}`));
@@ -119,8 +122,14 @@ for (const url of urls) {
     ["15", "8", "6", "4"].forEach((value) =>
       assert(new RegExp(`>${value}<`).test(html), `homepage server HTML is missing counter ${value}`)
     );
+    assert(!html.includes("Recent Projects"), "unverified project section rendered publicly");
+    assert(!html.includes("Customer reviews"), "unverified review section rendered publicly");
   } else if (productionUrl.pathname === "/contact") {
     assert(jsonLd.some((item) => item["@type"] === "FAQPage"), "contact FAQPage JSON-LD is missing");
+  } else if (productionUrl.pathname === "/privacy") {
+    assert(html.includes("Privacy notice"), "privacy page content is missing");
+  } else if (productionUrl.pathname === "/service-areas") {
+    assert(html.includes("Configured service area"), "service-area page content is missing");
   } else if (productionUrl.pathname.startsWith("/services/")) {
     const schemas = jsonLd.flat();
     assert(schemas.some((item) => item["@type"] === "Service"), `${productionUrl.pathname} Service JSON-LD is missing`);
@@ -136,6 +145,7 @@ assert(robotsResponse.ok, "robots.txt did not return 200");
 const robots = await robotsResponse.text();
 assert(robots.includes("Allow: /"), "robots.txt does not allow public crawling");
 assert(robots.includes("Disallow: /api/"), "robots.txt does not exclude API routes");
+assert(robots.includes("Disallow: /admin/"), "robots.txt does not exclude admin routes");
 assert(robots.includes(`Sitemap: ${productionBase}/sitemap.xml`), "robots.txt sitemap is incorrect");
 assert(!robots.includes("ngarishakeja.co.ke"), "robots.txt contains the unavailable domain");
 
@@ -151,6 +161,10 @@ quote.set("name", "Verification Test");
 quote.set("phone", "+254 000 000 000");
 quote.set("service", "Office Cleaning");
 quote.set("utm_source", "verification");
+quote.set("propertyType", "Home");
+quote.set("frequency", "Weekly");
+quote.set("preferredDate", "2030-01-02");
+quote.set("message", "Needs a 50% clean & reset");
 const validQuote = await fetch(`${localBase}/api/quote`, {
   method: "POST",
   headers: { Accept: "application/json" },
@@ -161,6 +175,8 @@ const quoteResult = await validQuote.json();
 const whatsappUrl = new URL(quoteResult.whatsappUrl);
 assert(whatsappUrl.hostname === "wa.me", "quote handoff does not use WhatsApp");
 assert(whatsappUrl.searchParams.get("text")?.includes("utm_source: verification"), "quote lost UTM attribution");
+assert(whatsappUrl.searchParams.get("text")?.includes("Property type: Home"), "quote lost property details");
+assert(whatsappUrl.searchParams.get("text")?.includes("50% clean & reset"), "quote did not safely encode message text");
 
 const noJavaScriptQuote = new URLSearchParams({
   name: "Verification Test",
@@ -193,6 +209,17 @@ for (const service of ["Office Cleaning", "Fumigation Coordination"]) {
   );
 }
 
+const planContactResponse = await fetch(`${localBase}/contact?service=${encodeURIComponent("Airbnb Turnover Cleaning")}`);
+const planContactHtml = await planContactResponse.text();
+assert(
+  /<option value=["']Airbnb Turnover Cleaning["'] selected=["']["']>Airbnb Turnover Cleaning<\/option>/.test(planContactHtml),
+  "plan query parameter did not preselect the quote form"
+);
+const plansPage = await (await fetch(`${localBase}/plans`)).text();
+assert(plansPage.includes("Twice-Monthly Home Cleaning"), "plans page is missing twice-monthly plan");
+assert(plansPage.includes("Office Cleaning Contract"), "plans page is missing office contract plan");
+assert(!/\b(?:KES|KSh|starting price|from Ksh)\b/i.test(plansPage), "unconfigured pricing rendered publicly");
+
 const apex = await requestWithHost("/contact?service=Office%20Cleaning", "ngarisha.co.ke");
 assert(apex.statusCode === 308, "non-www host did not return a permanent redirect");
 assert(
@@ -206,6 +233,19 @@ const preview = await requestWithHost("/contact", "sample-preview.vercel.app");
 assert(preview.headers["x-robots-tag"] === "noindex, nofollow", "preview host is missing X-Robots-Tag");
 const production = await requestWithHost("/contact", "www.ngarisha.co.ke");
 assert(!production.headers["x-robots-tag"], "production host must never receive X-Robots-Tag noindex");
+const versionResponse = await fetch(`${localBase}/api/version`);
+assert(versionResponse.ok, "version endpoint did not return 200");
+const versionPayload = await versionResponse.json();
+assert(versionPayload.version, "version endpoint did not identify the build");
+const adminResponse = await fetch(`${localBase}/admin`);
+assert(adminResponse.status === 404, "admin route is publicly accessible without authentication");
+
+const trackingSource = await readFile(new URL("../components/ConversionTracking.js", import.meta.url), "utf8");
+["name:", "phone:", "email:", "message:", "location:"].forEach((field) =>
+  assert(!new RegExp(`\\b${field}`).test(trackingSource), `tracking source contains personal field ${field}`)
+);
+const siteSource = await readFile(new URL("../lib/site.js", import.meta.url), "utf8");
+assert(!siteSource.includes("AggregateRating"), "unverified aggregate review schema is present");
 
 process.stdout.write(
   `Verified ${urls.length} public URLs, metadata/schema, form validation, attribution, and host controls.\n`

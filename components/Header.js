@@ -73,12 +73,12 @@ export default function Header() {
     >
       <div className="container-px flex h-[72px] items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5" aria-label="Ngarisha home">
+        <Link href="/" className="flex items-center gap-2.5" aria-label={`${company.shortName} home`}>
           <span className="grid h-9 w-9 place-items-center rounded-lg bg-navy text-white">
             <Icon name="sparkle" className="h-5 w-5 text-gold" />
           </span>
           <span className="flex flex-col leading-none">
-            <span className="font-display text-lg font-bold text-navy">Ngarisha</span>
+            <span className="font-display text-lg font-bold text-navy">{company.shortName}</span>
             <span className="text-[11px] font-medium uppercase tracking-wider text-slatey">
               {company.tagline}
             </span>

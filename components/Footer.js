@@ -112,6 +112,7 @@ export default function Footer() {
                 {l.label}
               </Link>
             ))}
+            <Link href="/privacy" className="hover:text-gold">Privacy</Link>
           </nav>
         </div>
       </div>

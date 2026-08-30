@@ -30,6 +30,8 @@ export default function ServicesPreview() {
             <Reveal key={s.title} delay={(i % 3) * 80}>
               <Link
                 href={`/services/${s.slug}`}
+                data-track-event="service_quote_click"
+                data-track-service={s.slug}
                 className="group relative flex h-full flex-col overflow-hidden rounded-card border border-line bg-white shadow-soft transition-all duration-200 hover:-translate-y-1 hover:border-gold/50 hover:shadow-lift"
               >
                 {s.image && (
