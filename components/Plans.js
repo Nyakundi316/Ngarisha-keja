@@ -9,6 +9,7 @@ export default function Plans() {
     <section id="plans" className="py-24">
       <div className="container-px">
         <SectionHeading
+          as="h1"
           eyebrow="Flexible Plans"
           title="Plans that fit your space and schedule"
           subtext="Quote-based pricing — pay only for what your space actually needs."
@@ -27,13 +28,13 @@ export default function Plans() {
                     Most Popular
                   </span>
                 )}
-                <h3
+                <h2
                   className={`font-display text-lg font-bold ${
                     plan.popular ? "text-white" : "text-navy"
                   }`}
                 >
                   {plan.title}
-                </h3>
+                </h2>
                 <p
                   className={`mt-2 flex-1 text-sm leading-relaxed ${
                     plan.popular ? "text-white/75" : "text-slatey"

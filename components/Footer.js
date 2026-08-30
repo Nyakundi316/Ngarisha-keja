@@ -42,7 +42,7 @@ export default function Footer() {
 
         {/* Services */}
         <div>
-          <h3 className="font-display text-sm font-bold uppercase tracking-wider text-white">Services</h3>
+          <h2 className="font-display text-sm font-bold uppercase tracking-wider text-white">Services</h2>
           <ul className="mt-4 space-y-2.5">
             {services.slice(0, 6).map((s) => (
               <li key={s.title}>
@@ -56,9 +56,9 @@ export default function Footer() {
 
         {/* Facility support */}
         <div>
-          <h3 className="font-display text-sm font-bold uppercase tracking-wider text-white">
+          <h2 className="font-display text-sm font-bold uppercase tracking-wider text-white">
             Facility Support
-          </h3>
+          </h2>
           <ul className="mt-4 space-y-2.5">
             {facilitySupport.slice(0, 6).map((f) => (
               <li key={f.title}>
@@ -72,7 +72,7 @@ export default function Footer() {
 
         {/* Contact */}
         <div>
-          <h3 className="font-display text-sm font-bold uppercase tracking-wider text-white">Contact</h3>
+          <h2 className="font-display text-sm font-bold uppercase tracking-wider text-white">Contact</h2>
           <ul className="mt-4 space-y-3 text-sm text-white/60">
             <li className="flex items-center gap-3">
               <Icon name="phone" className="h-4 w-4 text-gold" />
@@ -97,7 +97,7 @@ export default function Footer() {
               <span>{company.hours}</span>
             </li>
           </ul>
-          <p className="mt-5 text-xs leading-relaxed text-white/40">
+          <p className="mt-5 text-xs leading-relaxed text-white/60">
             Serving {company.serviceArea}. Quotes are free and confirmed after a site visit.
           </p>
         </div>
@@ -105,8 +105,8 @@ export default function Footer() {
 
       <div className="border-t border-white/10">
         <div className="container-px flex flex-col items-center justify-between gap-3 py-6 text-xs text-white/50 sm:flex-row">
-          <p>Â© {year} {company.name}. All rights reserved.</p>
-          <nav className="flex gap-5">
+          <p>© {year} {company.name}. All rights reserved.</p>
+          <nav aria-label="Footer navigation" className="flex gap-5">
             {navLinks.map((l) => (
               <Link key={l.href} href={l.href} className="hover:text-gold">
                 {l.label}

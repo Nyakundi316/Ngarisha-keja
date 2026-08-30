@@ -4,7 +4,14 @@ import { notFound } from "next/navigation";
 import Reveal from "@/components/Reveal";
 import Icon from "@/components/Icon";
 import CtaBand from "@/components/CtaBand";
+import JsonLd from "@/components/JsonLd";
 import { allServices, getServiceBySlug, company, steps } from "@/lib/site";
+import {
+  createPageMetadata,
+  getServiceSeoDescription,
+  getServiceSeoTitle,
+} from "@/lib/seo";
+import { getServiceSchemas } from "@/lib/schema";
 
 export function generateStaticParams() {
   return allServices.map((s) => ({ slug: s.slug }));
@@ -12,12 +19,14 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }) {
   const service = getServiceBySlug(params.slug);
-  if (!service) return { title: "Service not found" };
-  return {
-    title: service.title,
-    description: service.long,
-    alternates: { canonical: `/services/${service.slug}` },
-  };
+  if (!service) {
+    return { title: "Service not found", robots: { index: false, follow: false } };
+  }
+  return createPageMetadata({
+    title: getServiceSeoTitle(service),
+    description: getServiceSeoDescription(service),
+    path: `/services/${service.slug}`,
+  });
 }
 
 export default function ServiceDetailPage({ params }) {
@@ -33,17 +42,30 @@ export default function ServiceDetailPage({ params }) {
 
   return (
     <main className="pt-[72px]">
+      <JsonLd data={getServiceSchemas(service)} />
       {/* Header band */}
       <section className="relative overflow-hidden bg-surface">
         <div className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full bg-gold/15 blur-3xl" />
         <div className="container-px relative py-16 sm:py-20">
           <Reveal variant="fade">
-            <nav className="flex items-center gap-2 text-sm text-slatey">
-              <Link href="/services" className="transition-colors hover:text-teal-dark">
-                Services
-              </Link>
-              <span className="text-line">/</span>
-              <span className="font-medium text-navy">{service.title}</span>
+            <nav aria-label="Breadcrumb" className="text-sm text-slatey">
+              <ol className="flex flex-wrap items-center gap-2">
+                <li>
+                  <Link href="/" className="transition-colors hover:text-teal-dark">
+                    Home
+                  </Link>
+                </li>
+                <li aria-hidden="true" className="text-line">/</li>
+                <li>
+                  <Link href="/services" className="transition-colors hover:text-teal-dark">
+                    Services
+                  </Link>
+                </li>
+                <li aria-hidden="true" className="text-line">/</li>
+                <li aria-current="page" className="font-medium text-navy">
+                  {service.title}
+                </li>
+              </ol>
             </nav>
           </Reveal>
 
@@ -141,21 +163,21 @@ export default function ServiceDetailPage({ params }) {
               <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-teal shadow-soft">
                 <Icon name="handshake" className="h-5 w-5" />
               </span>
-              <h3 className="mt-5 font-display text-lg font-bold text-navy">Who it&apos;s for</h3>
+              <h2 className="mt-5 font-display text-lg font-bold text-navy">Who it&apos;s for</h2>
               <p className="mt-2 text-sm leading-relaxed text-slatey">{service.serves}</p>
 
               <div className="my-6 h-px bg-line" />
 
               <p className="text-sm font-semibold text-navy">Flexible scheduling</p>
               <p className="mt-1 text-sm text-slatey">
-                One-time, weekly, monthly, or long-term â€” pick what fits your space.
+                One-time, weekly, monthly, or long-term — pick what fits your space.
               </p>
 
               <div className="my-6 h-px bg-line" />
 
               <p className="text-sm font-semibold text-navy">Quote-based pricing</p>
               <p className="mt-1 text-sm text-slatey">
-                Pricing depends on the size and state of your space â€” we confirm it after a quick
+                Pricing depends on the size and state of your space — we confirm it after a quick
                 site visit, before any work starts.
               </p>
               <Link href={quoteHref} className="btn-primary mt-6 w-full">
@@ -177,7 +199,7 @@ export default function ServiceDetailPage({ params }) {
               <Reveal key={step.n} delay={i * 80} as="li" className="flex gap-4">
                 <span className="font-display text-2xl font-extrabold text-teal">{step.n}</span>
                 <div>
-                  <p className="font-display text-base font-bold text-navy">{step.title}</p>
+                  <h3 className="font-display text-base font-bold text-navy">{step.title}</h3>
                   <p className="mt-1 text-sm leading-relaxed text-slatey">{step.desc}</p>
                 </div>
               </Reveal>

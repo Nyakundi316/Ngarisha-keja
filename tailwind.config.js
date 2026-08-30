@@ -19,7 +19,7 @@ module.exports = {
         teal: "#66724A",
         "teal-dark": "#525C3A",
         gold: "#C59A45",
-        terracotta: "#B85C38",
+        terracotta: "#A4472B",
         green: "#4E7B52",
         ink: "#11100E",
         slatey: "#3A332D",

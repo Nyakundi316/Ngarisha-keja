@@ -29,25 +29,29 @@ export default function Reveal({
   once = true,
 }) {
   const ref = useRef(null);
-  const [shown, setShown] = useState(false);
+  // Server HTML stays visible. JavaScript only conceals elements that are
+  // below the fold, then reveals them as they enter the viewport.
+  const [concealed, setConcealed] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    if (typeof IntersectionObserver === "undefined") {
-      setShown(true);
-      return;
-    }
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion || typeof IntersectionObserver === "undefined") return;
+
+    const rect = el.getBoundingClientRect();
+    const initiallyVisible = rect.bottom >= 0 && rect.top <= window.innerHeight;
+    if (!initiallyVisible) setConcealed(true);
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setShown(true);
+            setConcealed(false);
             if (once) observer.unobserve(entry.target);
           } else if (!once) {
-            setShown(false);
+            setConcealed(true);
           }
         });
       },
@@ -61,10 +65,10 @@ export default function Reveal({
   return (
     <Tag
       ref={ref}
-      style={{ transitionDelay: shown ? `${delay}ms` : "0ms" }}
+      style={{ transitionDelay: concealed ? "0ms" : `${delay}ms` }}
       className={[
         "transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
-        shown ? "opacity-100 translate-x-0 translate-y-0 scale-100" : hidden[variant],
+        concealed ? hidden[variant] : "opacity-100 translate-x-0 translate-y-0 scale-100",
         className,
       ].join(" ")}
     >

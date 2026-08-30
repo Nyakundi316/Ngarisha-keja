@@ -1,79 +1,177 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Reveal from "@/components/Reveal";
 import Icon from "@/components/Icon";
-import { company, whatsappLink, serviceOptions } from "@/lib/site";
+import { trackConversion } from "@/components/ConversionTracking";
+import { attributionKeys, captureAttribution } from "@/lib/attribution";
+import { quoteLimits, validateQuote } from "@/lib/quote";
+import { company, serviceOptions, whatsappLink } from "@/lib/site";
 
-const initial = { name: "", phone: "", email: "", service: "", location: "", message: "" };
+const emptyForm = (service = "") => ({
+  name: "",
+  phone: "",
+  email: "",
+  service,
+  location: "",
+  message: "",
+});
 
-export default function Contact() {
-  const [form, setForm] = useState(initial);
+function RequiredMark() {
+  return (
+    <>
+      <span aria-hidden="true" className="text-terracotta"> *</span>
+      <span className="sr-only"> (required)</span>
+    </>
+  );
+}
+
+export default function Contact({ initialService = "", initialAttribution = {} }) {
+  const [form, setForm] = useState(() => emptyForm(initialService));
+  const [attribution, setAttribution] = useState(initialAttribution);
   const [errors, setErrors] = useState({});
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState("idle");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [fallbackUrl, setFallbackUrl] = useState("");
+  const [clientReady, setClientReady] = useState(false);
+  const statusRef = useRef(null);
 
-  // Preselect the service when arriving from a /services/[slug] page
-  // (e.g. /contact?service=Office%20Cleaning).
   useEffect(() => {
-    const requested = new URLSearchParams(window.location.search).get("service");
-    if (requested && serviceOptions.includes(requested)) {
-      setForm((f) => ({ ...f, service: requested }));
+    setClientReady(true);
+    setAttribution(captureAttribution(initialAttribution));
+  }, [initialAttribution]);
+
+  useEffect(() => {
+    if (status === "success" || status === "error") statusRef.current?.focus();
+  }, [status]);
+
+  const focusFirstError = (nextErrors) => {
+    const first = ["name", "phone", "email", "service"].find((field) => nextErrors[field]);
+    if (first) window.setTimeout(() => document.getElementById(first)?.focus(), 0);
+  };
+
+  const update = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: undefined }));
+    if (status === "error") {
+      setStatus("idle");
+      setStatusMessage("");
+      setFallbackUrl("");
     }
-  }, []);
-
-  const update = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-    setErrors((er) => ({ ...er, [name]: undefined }));
   };
 
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim()) e.name = "Please enter your name.";
-    if (!/^[0-9 +()-]{7,}$/.test(form.phone.trim())) e.phone = "Enter a valid phone number.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = "Enter a valid email.";
-    if (!form.service) e.service = "Select a service.";
-    if (!form.location.trim()) e.location = "Tell us your location.";
-    return e;
-  };
-
-  const onSubmit = (e) => {
-    e.preventDefault();
-    const e2 = validate();
-    if (Object.keys(e2).length) {
-      setErrors(e2);
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    const result = validateQuote({ ...form, ...attribution });
+    if (Object.keys(result.errors).length) {
+      setErrors(result.errors);
+      setStatus("error");
+      setStatusMessage("Check the highlighted fields and try again.");
+      focusFirstError(result.errors);
       return;
     }
-    // No backend yet: compose a prefilled WhatsApp message.
-    // To use email instead, swap this for a mailto: link or wire to Formspree/Resend/your API.
-    const text =
-      `New quote request%0A` +
-      `Name: ${form.name}%0A` +
-      `Phone: ${form.phone}%0A` +
-      `Email: ${form.email}%0A` +
-      `Service: ${form.service}%0A` +
-      `Location: ${form.location}%0A` +
-      `Message: ${form.message || "-"}`;
-    window.open(`https://wa.me/${company.whatsapp}?text=${text}`, "_blank", "noopener");
-    setSent(true);
-    setForm(initial);
+
+    setErrors({});
+    setStatus("loading");
+    setStatusMessage("");
+    setFallbackUrl("");
+
+    const popup = window.open("about:blank", "_blank");
+    if (popup) {
+      try {
+        popup.opener = null;
+        popup.document.title = "Opening WhatsApp";
+        popup.document.body.textContent = "Preparing your WhatsApp quote…";
+      } catch {
+        // Navigation below still works if the temporary window cannot be customized.
+      }
+    }
+
+    const payload = new FormData();
+    Object.entries(result.values).forEach(([key, value]) => payload.set(key, value));
+    Object.entries(result.attribution).forEach(([key, value]) => payload.set(key, value));
+
+    try {
+      const response = await fetch("/api/quote", {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: payload,
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        if (popup && !popup.closed) popup.close();
+        const serverErrors = data.errors || {};
+        setErrors(serverErrors);
+        setStatus("error");
+        setStatusMessage(data.message || "We could not prepare WhatsApp. Please try again.");
+        focusFirstError(serverErrors);
+        return;
+      }
+
+      const whatsappUrl = String(data.whatsappUrl || "");
+      const trustedUrl = new URL(whatsappUrl);
+      if (trustedUrl.protocol !== "https:" || trustedUrl.hostname !== "wa.me") {
+        throw new Error("Unexpected handoff URL");
+      }
+
+      setFallbackUrl(whatsappUrl);
+      if (!popup || popup.closed) {
+        setStatus("error");
+        setStatusMessage("Your browser blocked the WhatsApp window. Use the link below to continue.");
+        return;
+      }
+
+      popup.location.replace(whatsappUrl);
+      trackConversion("quote_handoff", {
+        method: "WhatsApp",
+        service: result.values.service,
+        page_path: window.location.pathname,
+      });
+      setForm(emptyForm(initialService));
+      setStatus("success");
+    } catch {
+      if (popup && !popup.closed) popup.close();
+      setStatus("error");
+      setStatusMessage("We could not prepare WhatsApp. Check your connection and try again.");
+    }
+  };
+
+  const reset = () => {
+    setForm(emptyForm(initialService));
+    setErrors({});
+    setStatus("idle");
+    setStatusMessage("");
+    setFallbackUrl("");
   };
 
   const fieldClass = (name) =>
-    `w-full rounded-btn border bg-white px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-slatey/60 focus:border-teal focus:ring-2 focus:ring-teal/20 ${
+    `w-full rounded-btn border bg-white px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-slatey/80 focus:border-teal focus:ring-2 focus:ring-teal/20 ${
       errors[name] ? "border-terracotta" : "border-line"
     }`;
+
+  const accessibilityProps = (name) => ({
+    "aria-invalid": errors[name] ? "true" : undefined,
+    "aria-describedby": errors[name] ? `${name}-error` : undefined,
+  });
+
+  const errorText = (name) =>
+    errors[name] ? (
+      <p id={`${name}-error`} role="alert" className="mt-1.5 text-sm font-medium text-terracotta">
+        {errors[name]}
+      </p>
+    ) : null;
 
   return (
     <section id="contact" className="bg-surface py-24">
       <div className="container-px grid gap-12 lg:grid-cols-[0.95fr_1.05fr]">
-        {/* Info column */}
         <div>
           <Reveal>
             <span className="eyebrow">Get In Touch</span>
-            <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-navy sm:text-4xl">
+            <h1 className="mt-4 font-display text-3xl font-bold leading-tight text-navy sm:text-4xl">
               Need a Reliable Cleaning &amp; Facility Support Partner?
-            </h2>
+            </h1>
             <p className="mt-5 text-lg leading-relaxed text-slatey">
               Request a quotation today and let our team help you keep your space clean, fresh, and
               professionally maintained.
@@ -119,93 +217,204 @@ export default function Contact() {
                   <Icon name="pin" className="h-5 w-5" />
                 </span>
                 <span className="text-sm font-medium text-navy">
-                  {company.address} Â· {company.hours}
+                  {company.address} · {company.hours}
                 </span>
               </li>
             </ul>
           </Reveal>
         </div>
 
-        {/* Form column */}
         <Reveal delay={120}>
           <div className="rounded-xl border border-line bg-white p-7 shadow-lift sm:p-8">
-            {sent ? (
-              <div className="flex h-full min-h-[420px] flex-col items-center justify-center text-center">
+            {status === "success" ? (
+              <div
+                ref={statusRef}
+                tabIndex={-1}
+                role="status"
+                className="flex h-full min-h-[420px] flex-col items-center justify-center text-center outline-none"
+              >
                 <span className="grid h-16 w-16 place-items-center rounded-full bg-teal/10 text-teal">
                   <Icon name="check" className="h-8 w-8" />
                 </span>
-                <h3 className="mt-5 font-display text-xl font-bold text-navy">Request ready to send</h3>
+                <h2 className="mt-5 font-display text-xl font-bold text-navy">Request ready to send</h2>
                 <p className="mt-2 max-w-sm text-sm text-slatey">
-                  Weâ€™ve opened WhatsApp with your details prefilled. Hit send there and weâ€™ll get
-                  back to you shortly.
+                  We’ve opened WhatsApp with your details prefilled. Review the message and tap send
+                  there to finish your request.
                 </p>
-                <button onClick={() => setSent(false)} className="btn-outline mt-6">
-                  Send another request
-                </button>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  {fallbackUrl && (
+                    <a href={fallbackUrl} target="_blank" rel="noopener noreferrer" className="btn-accent">
+                      Reopen WhatsApp
+                    </a>
+                  )}
+                  <button type="button" onClick={reset} className="btn-outline">
+                    Send another request
+                  </button>
+                </div>
               </div>
             ) : (
-              <form onSubmit={onSubmit} noValidate className="grid gap-4">
+              <form
+                action="/api/quote"
+                method="post"
+                onSubmit={onSubmit}
+                noValidate={clientReady}
+                aria-busy={status === "loading"}
+                className="grid gap-4"
+              >
+                {attributionKeys.map((key) => (
+                  <input key={key} type="hidden" name={key} value={attribution[key] || ""} />
+                ))}
+
+                {status === "error" && statusMessage && (
+                  <div
+                    ref={statusRef}
+                    tabIndex={-1}
+                    role="alert"
+                    className="rounded-btn border border-terracotta/40 bg-terracotta/10 p-4 text-sm text-ink outline-none"
+                  >
+                    <p>{statusMessage}</p>
+                    {fallbackUrl && (
+                      <a
+                        href={fallbackUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex font-semibold text-teal-dark underline"
+                      >
+                        Continue to WhatsApp
+                      </a>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-navy">
-                      Name
+                      Name<RequiredMark />
                     </label>
-                    <input id="name" name="name" value={form.name} onChange={update} className={fieldClass("name")} placeholder="Your full name" />
-                    {errors.name && <p className="mt-1 text-xs text-terracotta">{errors.name}</p>}
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      required
+                      autoComplete="name"
+                      maxLength={quoteLimits.name}
+                      value={form.name}
+                      onChange={update}
+                      className={fieldClass("name")}
+                      placeholder="Your full name"
+                      {...accessibilityProps("name")}
+                    />
+                    {errorText("name")}
                   </div>
                   <div>
                     <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-navy">
-                      Phone Number
+                      Phone Number<RequiredMark />
                     </label>
-                    <input id="phone" name="phone" value={form.phone} onChange={update} className={fieldClass("phone")} placeholder="07XX XXX XXX" inputMode="tel" />
-                    {errors.phone && <p className="mt-1 text-xs text-terracotta">{errors.phone}</p>}
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      required
+                      autoComplete="tel"
+                      inputMode="tel"
+                      maxLength={quoteLimits.phone}
+                      value={form.phone}
+                      onChange={update}
+                      className={fieldClass("phone")}
+                      placeholder="07XX XXX XXX"
+                      {...accessibilityProps("phone")}
+                    />
+                    {errorText("phone")}
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-navy">
-                      Email
+                      Email <span className="font-normal text-slatey">(optional)</span>
                     </label>
-                    <input id="email" name="email" value={form.email} onChange={update} className={fieldClass("email")} placeholder="you@email.com" inputMode="email" />
-                    {errors.email && <p className="mt-1 text-xs text-terracotta">{errors.email}</p>}
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      inputMode="email"
+                      maxLength={quoteLimits.email}
+                      value={form.email}
+                      onChange={update}
+                      className={fieldClass("email")}
+                      placeholder="you@email.com"
+                      {...accessibilityProps("email")}
+                    />
+                    {errorText("email")}
                   </div>
                   <div>
                     <label htmlFor="location" className="mb-1.5 block text-sm font-medium text-navy">
-                      Location
+                      Location <span className="font-normal text-slatey">(optional)</span>
                     </label>
-                    <input id="location" name="location" value={form.location} onChange={update} className={fieldClass("location")} placeholder="Area / neighborhood" />
-                    {errors.location && <p className="mt-1 text-xs text-terracotta">{errors.location}</p>}
+                    <input
+                      id="location"
+                      name="location"
+                      type="text"
+                      autoComplete="address-level2"
+                      maxLength={quoteLimits.location}
+                      value={form.location}
+                      onChange={update}
+                      className={fieldClass("location")}
+                      placeholder="Area / neighborhood"
+                    />
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="service" className="mb-1.5 block text-sm font-medium text-navy">
-                    Service Needed
+                    Service Needed<RequiredMark />
                   </label>
-                  <select id="service" name="service" value={form.service} onChange={update} className={fieldClass("service")}>
-                    <option value="">Select a serviceâ€¦</option>
-                    {serviceOptions.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
+                  <select
+                    id="service"
+                    name="service"
+                    required
+                    value={form.service}
+                    onChange={update}
+                    className={fieldClass("service")}
+                    {...accessibilityProps("service")}
+                  >
+                    <option value="">Select a service…</option>
+                    {serviceOptions.map((service) => (
+                      <option key={service} value={service}>
+                        {service}
                       </option>
                     ))}
                   </select>
-                  {errors.service && <p className="mt-1 text-xs text-terracotta">{errors.service}</p>}
+                  {errorText("service")}
                 </div>
 
                 <div>
                   <label htmlFor="message" className="mb-1.5 block text-sm font-medium text-navy">
                     Message <span className="font-normal text-slatey">(optional)</span>
                   </label>
-                  <textarea id="message" name="message" value={form.message} onChange={update} rows={4} className={fieldClass("message")} placeholder="Tell us about your spaceâ€¦" />
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={form.message}
+                    onChange={update}
+                    rows={4}
+                    maxLength={quoteLimits.message}
+                    className={fieldClass("message")}
+                    placeholder="Tell us about your space…"
+                  />
                 </div>
 
-                <button type="submit" className="btn-accent mt-2 w-full">
-                  Request Quote <Icon name="arrow" className="h-4 w-4" />
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="btn-accent mt-2 w-full disabled:cursor-wait disabled:opacity-70"
+                >
+                  {status === "loading" ? "Preparing WhatsApp…" : "Request Quote"}
+                  {status !== "loading" && <Icon name="arrow" className="h-4 w-4" />}
                 </button>
-                <p className="text-center text-xs text-slatey">
-                  We typically respond within a few hours during working hours.
+                <p className="text-center text-xs leading-relaxed text-slatey">
+                  Submitting prepares a WhatsApp message. Review it there before sending.
                 </p>
               </form>
             )}

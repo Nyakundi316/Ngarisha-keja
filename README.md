@@ -1,6 +1,6 @@
 # Ngarishakeja — Cleaning & Facility Support Website
 
-A modern, responsive marketing site built with **Next.js (App Router) + Tailwind CSS**. No extra UI or animation libraries — scroll reveals, the count-up stats, the FAQ accordion, and the quote form are all hand-built in plain React.
+A modern, responsive marketing site built with **Next.js (App Router) + Tailwind CSS**. No extra UI or animation libraries — scroll reveals, the impact stats, the FAQ accordion, and the quote form are all hand-built in plain React.
 
 ## Quick start
 
@@ -20,7 +20,7 @@ npm start
 
 ## Where to edit things
 
-**`lib/site.js` is the control panel.** Almost everything — company details, services, plans, FAQs, testimonials, stats, nav links — lives here. Change content there and every section updates.
+**`lib/site.js` is the control panel.** Almost everything — company details, services, plans, FAQs, service standards, stats, and nav links — lives here. Change content there and every section updates.
 
 Already wired in:
 - Company name: **Ngarishakeja**
@@ -28,7 +28,7 @@ Already wired in:
 - WhatsApp: **254759553961**
 - Email: **nyakundibrian316@gmail.com**
 
-Still marked `// TODO` in `lib/site.js` (fill when ready): address, hours, social links, years in business, and the three stat numbers.
+Still marked `// TODO` in `lib/site.js` (fill when ready): address, service area, hours, social links, and years in business. The homepage counts are derived from the service arrays and the visible Mon–Sat / four-step information.
 
 ## Project structure
 
@@ -48,7 +48,7 @@ components/
   HowItWorks.js      4-step process
   Plans.js           5 plan cards (one highlighted)
   ClientsWeServe.js  Audience icon grid
-  Testimonials.js    Quote cards
+  Testimonials.js    Service-standard cards
   TrustQuality.js    Promise statement band
   Faq.js             Accordion
   Contact.js         Info column + validated quote form
@@ -72,7 +72,11 @@ Section visuals currently use styled gradient panels as placeholders. To use rea
 
 ## Contact form
 
-There's no backend yet, so submitting the form opens **WhatsApp** with all fields prefilled (`Contact.js`). To send via email or a service instead, replace the `window.open(...wa.me...)` block with a `mailto:` link or a POST to Formspree / Resend / your own API route.
+The form validates on the client and server, then prepares a WhatsApp handoff with the fields and allowlisted campaign attribution. The API route does not store or claim delivery of leads; the visitor reviews and sends the prepared WhatsApp message. Configure a real lead-delivery provider before describing submissions as received.
+
+## SEO and analytics
+
+Public metadata, JSON-LD, sitemap, robots rules, and host redirects use `https://www.ngarisha.co.ke`. A Google Analytics tag is loaded only when the owner supplies a valid `NEXT_PUBLIC_GA_ID` deployment variable; no ID is included in this repository. Review consent and privacy wording before enabling it.
 
 ## Built-in quality
 
@@ -80,4 +84,4 @@ There's no backend yet, so submitting the form opens **WhatsApp** with all field
 - Keyboard-focusable controls with visible focus rings
 - `prefers-reduced-motion` respected (animations disabled)
 - Semantic headings, alt text, ARIA labels on icon-only buttons
-- SEO metadata + Open Graph in `app/layout.js`
+- SEO metadata, Open Graph/Twitter cards, JSON-LD, sitemap, and robots rules

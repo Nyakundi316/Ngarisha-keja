@@ -16,7 +16,7 @@ export default function WhyChooseUs() {
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-slatey">
               We combine dependable people, clear standards, and flexible scheduling so your space
-              stays clean and well maintained â€” without the hassle.
+              stays clean and well maintained — without the hassle.
             </p>
           </Reveal>
           <Reveal delay={120}>

@@ -17,23 +17,35 @@ export default function Faq() {
         <div className="mx-auto mt-12 max-w-3xl divide-y divide-line rounded-card border border-line bg-white shadow-soft">
           {faqs.map((item, i) => {
             const isOpen = openIndex === i;
+            const buttonId = `faq-question-${i}`;
+            const panelId = `faq-answer-${i}`;
             return (
-              <div key={i}>
-                <button
-                  onClick={() => setOpenIndex(isOpen ? -1 : i)}
-                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-                  aria-expanded={isOpen}
-                >
-                  <span className="font-display text-base font-semibold text-navy">{item.q}</span>
-                  <span
-                    className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-line text-navy transition-transform duration-300 ${
-                      isOpen ? "rotate-45 bg-teal text-white border-teal" : ""
-                    }`}
+              <div key={item.q}>
+                <h3>
+                  <button
+                    id={buttonId}
+                    type="button"
+                    onClick={() => setOpenIndex(isOpen ? -1 : i)}
+                    className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal"
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
                   >
-                    <Icon name="plus" className="h-4 w-4" />
-                  </span>
-                </button>
+                    <span className="font-display text-base font-semibold text-navy">{item.q}</span>
+                    <span
+                      className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-line text-navy transition-transform duration-300 ${
+                        isOpen ? "rotate-45 border-teal bg-teal text-white" : ""
+                      }`}
+                      aria-hidden="true"
+                    >
+                      <Icon name="plus" className="h-4 w-4" />
+                    </span>
+                  </button>
+                </h3>
                 <div
+                  id={panelId}
+                  role="region"
+                  aria-labelledby={buttonId}
+                  hidden={!isOpen}
                   className={`grid overflow-hidden px-6 transition-all duration-300 ${
                     isOpen ? "grid-rows-[1fr] pb-5 opacity-100" : "grid-rows-[0fr] opacity-0"
                   }`}

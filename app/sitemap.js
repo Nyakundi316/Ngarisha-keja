@@ -1,10 +1,10 @@
 import { company, allServices } from "@/lib/site";
 
 export default function sitemap() {
-  const pages = ["", "/about", "/services", "/plans", "/contact"].map((route) => ({
-    url: `${company.siteUrl}${route}`,
+  const pages = ["/", "/about", "/services", "/plans", "/contact"].map((route) => ({
+    url: route === "/" ? `${company.siteUrl}/` : `${company.siteUrl}${route}`,
     changeFrequency: "monthly",
-    priority: route === "" ? 1 : 0.7,
+    priority: route === "/" ? 1 : 0.7,
   }));
 
   const serviceDetails = allServices.map((s) => ({

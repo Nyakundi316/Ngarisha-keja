@@ -11,6 +11,7 @@ export default function Services() {
     <section id="services" className="py-24">
       <div className="container-px">
         <SectionHeading
+          as="h1"
           eyebrow="Our Services"
           title="Comprehensive cleaning for every space"
           subtext="From everyday upkeep to specialized deep cleans, we cover it all."
@@ -38,7 +39,7 @@ export default function Services() {
                   <span className="grid h-12 w-12 place-items-center rounded-xl bg-surface text-navy transition-colors duration-200 group-hover:bg-teal group-hover:text-white">
                     <Icon name={s.icon} className="h-6 w-6" />
                   </span>
-                  <h3 className="mt-5 font-display text-lg font-bold text-navy">{s.title}</h3>
+                  <h2 className="mt-5 font-display text-lg font-bold text-navy">{s.title}</h2>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-slatey">{s.desc}</p>
                   <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                     Learn more <Icon name="arrow" className="h-4 w-4" />

@@ -60,7 +60,7 @@ export default function ServicesPreview() {
 
         <Reveal delay={120}>
           <p className="mt-8 text-center text-sm text-slatey">
-            Plus deep cleaning, post-construction, fumigation, landscaping &amp; more â€”{" "}
+            Plus deep cleaning, post-construction, fumigation, landscaping &amp; more —{" "}
             <Link href="/services" className="font-semibold text-teal hover:underline">
               see the full list
             </Link>

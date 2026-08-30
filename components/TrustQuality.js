@@ -8,10 +8,10 @@ export default function TrustQuality() {
       <div className="container-px text-center">
         <Reveal>
           <span className="eyebrow justify-center text-gold">Our Promise</span>
-          <p className="mx-auto mt-6 max-w-3xl font-display text-2xl font-bold leading-snug text-white sm:text-3xl">
+          <h2 className="mx-auto mt-6 max-w-3xl font-display text-2xl font-bold leading-snug text-white sm:text-3xl">
             We don’t just clean spaces — we help clients maintain healthier, safer, and more
             organized environments.
-          </p>
+          </h2>
         </Reveal>
 
         <Reveal delay={120}>

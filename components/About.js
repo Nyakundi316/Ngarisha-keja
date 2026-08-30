@@ -49,9 +49,9 @@ export default function About() {
         <div>
           <Reveal>
             <span className="eyebrow">About Us</span>
-            <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-navy sm:text-4xl">
+            <h1 className="mt-4 font-display text-3xl font-bold leading-tight text-navy sm:text-4xl">
               Reliable cleaning and facility support — for one-time jobs and long-term partnerships
-            </h2>
+            </h1>
           </Reveal>
           <Reveal delay={100}>
             <p className="mt-5 text-lg leading-relaxed text-slatey">
